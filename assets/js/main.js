@@ -100,6 +100,38 @@ $(document).ready(function() {
       $(".incorrect").fadeIn(400).css("display", "block");
     }
   });
+
+  // swipe event listener
+  window.addEventListener("load", function() {
+    var swipeArea = document.querySelector(".game-slide");
+    var direction = swipeDetect(swipeArea);
+    var swipeConverted;
+    switch (direction) {
+      case "left":
+        swipeConverted = 37;
+        break;
+      case "up":
+        swipeConverted = 38;
+        break;
+      case "right":
+        swipeConverted = 39;
+        break;
+      case "down":
+        swipeConverted = 40;
+        break;
+    }
+    if (gameStart === true && gameComplete() === false) {
+      currentPosition = userMoves(currentPosition, swipeConverted);
+    }
+    if (gameComplete()) {
+      $("#winBox").fadeIn(400).css("display", "block");
+      if (stage % 10 === 9) {
+        var code = stage + 1;
+        $(".modal-code").empty();
+        $(".modal-code").append("Code: grid" + code);
+      }
+    }
+  });
 });
 
 var gameLoad = function() {
@@ -280,4 +312,47 @@ var gameComplete = function() {
     }
   }
   return gameStatus;
+};
+
+// swiping feature on mobile devices
+var swipeDetect = function(screen) {
+  var touchSurface = screen;
+  var swipeDir, dist, startX, startY, startTime, distX, distY, elapsedTime;
+  var allowedTime = 300;
+  var threshold = 150;
+  var restraint = 100;
+
+  touchSurface.addEventListener("touchstart", function(event) {
+    var touchObj = event.changedTouches[0];
+    swipeDir = "none";
+    dist = 0;
+    startX = touchObj.pageX;
+    startY = touchObj.pageY;
+    startTime = new Date().getTime();
+    event.preventDefault();
+  });
+
+  touchSurface.addEventListener("touchend", function(event) {
+    var touchObj = event.changedTouches[0];
+    distX = touchObj.pageX - startX;
+    distY = touchObj.pageY - startY;
+    elapsedTime = new Date().getTime() - startTime;
+    if (elapsedTime <= allowedTime) {
+      if (Math.abs(distX) >= threshold && Math.abs(distY) <= restraint) {
+        if (distX < 0) {
+          swipeDir = "left";
+        } else {
+          swipeDir = "right";
+        }
+      } else if (Math.abs(distY) >= threshold && Math.abs(distX) <= restraint) {
+        if (distY < 0) {
+          swipeDir = "up";
+        } else {
+          swipeDir = "down";
+        }
+      }
+    }
+    event.preventDefault();
+    return swipeDir;
+  });
 };
